@@ -6,52 +6,65 @@ const { createResultCard } = require('../services/messageService');
  */
 async function handleCardAction(eventData) {
     const startTime = Date.now();
-    console.log('🚀 Start processing card action');
+    console.log('🚀 [START] Processing card action');
+    console.log('📦 Event Data:', JSON.stringify(eventData));
 
     try {
         const { action } = eventData;
+        if (!action || !action.value) {
+            throw new Error('No action value found in event data');
+        }
+
+        console.log('🔍 Parsing action value...');
         const actionValue = JSON.parse(action.value);
+        console.log('✅ Action Value:', actionValue);
+
         const { action: actionType, recordIds, count } = actionValue;
 
-        console.log(`Processing ${actionType} action for ${count} records`);
-
         // Split comma-separated record IDs
-        const recordIdArray = recordIds.split(',');
+        const recordIdArray = recordIds ? recordIds.split(',') : [];
+        console.log(`📋 Records to update: ${recordIdArray.length} items`);
 
-        // Update all records with the new status
-        // Options must match exact Single Select options in table: "Approve", "Reject"
+        if (recordIdArray.length === 0) {
+            throw new Error('No record IDs to update');
+        }
+
+        // Determine status
         const status = (actionType === 'approve' || actionType === 'Approve') ? 'Approve' : 'Reject';
+        console.log(`🎯 Target Status: ${status}`);
 
-        console.log('⏳ Updating records (Background Process)...');
+        // --- FIRE AND FORGET STRATEGY ---
+        // Use setTimeout to push this task to the end of the event loop
+        // This ensures the response is sent to Lark FIRST
+        setTimeout(() => {
+            console.log('⏳ [BACKGROUND] Starting database update...');
+            updateRecordsStatus(recordIdArray, status)
+                .then(res => console.log(`✅ [BACKGROUND] Update success: ${res.updatedCount} records`))
+                .catch(err => console.error('❌ [BACKGROUND] Update failed:', err));
+        }, 100); // Delay 100ms to let the response fly out
 
-        // FIRE AND FORGET: Do not await this!
-        // This prevents Vercel timeout (3s limit from Lark)
-        updateRecordsStatus(recordIdArray, status)
-            .then(res => console.log(`✅ Background update success: ${res.updatedCount} records`))
-            .catch(err => console.error('❌ Background update failed:', err));
-
-        // Create result card immediately (optimistic update)
+        // Create result card
+        console.log('🎨 Creating result card...');
         const resultCard = createResultCard(actionType, count, true);
 
-        console.log(`🏁 Handler finished in ${Date.now() - startTime}ms (Update continues in background)`);
-
-        // Return updated card IMMEDIATELY
-        return {
+        const responsePayload = {
             toast: {
                 type: 'success',
-                content: `${count} laporan sedang diproses untuk di-${status.toLowerCase()}...`,
+                content: `${count} laporan sedang diproses...`,
             },
             card: resultCard,
         };
 
+        console.log(`🏁 [FINISH] Returning response in ${Date.now() - startTime}ms`);
+        return responsePayload;
+
     } catch (error) {
-        console.error('❌ Error handling card action:', error);
-        console.log(`🏁 Failed execution time: ${Date.now() - startTime}ms`);
+        console.error('❌ [ERROR] Handle Card Action:', error);
 
         return {
             toast: {
                 type: 'error',
-                content: 'Terjadi kesalahan sistem',
+                content: `Error: ${error.message}`,
             },
         };
     }
