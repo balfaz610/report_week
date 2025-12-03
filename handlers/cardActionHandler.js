@@ -19,30 +19,30 @@ async function handleCardAction(eventData) {
         const recordIdArray = recordIds.split(',');
 
         // Update all records with the new status
-        const status = actionType === 'approve' ? 'Approved' : 'Rejected';
+        // Options must match exact Single Select options in table: "Approve", "Reject"
+        const status = actionType === 'approve' ? 'Approve' : 'Reject';
 
-        console.log('⏳ Updating records... (SKIPPED FOR DEBUGGING)');
-        // const updateStart = Date.now();
-        // const result = await updateRecordsStatus(recordIdArray, status);
-        // console.log(`✅ Records updated in ${Date.now() - updateStart}ms`);
+        console.log('⏳ Updating records...');
+        const updateStart = Date.now();
 
-        // DUMMY RESULT
-        const result = { success: true };
+        // REAL UPDATE (using batch update for speed)
+        const result = await updateRecordsStatus(recordIdArray, status);
+        console.log(`✅ Records updated in ${Date.now() - updateStart}ms`);
 
         // Create result card
-        // const resultCard = createResultCard(actionType, count, result.success);
+        const resultCard = createResultCard(actionType, count, result.success);
 
         console.log(`🏁 Total execution time: ${Date.now() - startTime}ms`);
 
-        // DEBUG MODE: Return TOAST ONLY first to check if timeout issue is resolved
+        // Return updated card
         return {
             toast: {
                 type: result.success ? 'success' : 'error',
                 content: result.success
-                    ? `[DEBUG] Berhasil! ${count} laporan telah di-${status.toLowerCase()}. (Data belum diupdate)`
+                    ? `${count} laporan berhasil ${status.toLowerCase()}!`
                     : 'Gagal memproses laporan',
             },
-            // card: resultCard, // Disable card update temporarily
+            card: resultCard,
         };
 
     } catch (error) {

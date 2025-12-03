@@ -97,8 +97,8 @@ async function updateRecordsStatus(recordIds, status) {
         const records = recordIds.map(recordId => ({
             record_id: recordId,
             fields: {
-                'Status': status,
-                'Approved At': Date.now(),
+                'status': status, // Changed to lowercase 'status' to match table
+                // 'Approved At': Date.now(), // Commented out as I don't see this column in your screenshot
             },
         }));
 
