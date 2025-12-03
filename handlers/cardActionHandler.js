@@ -22,25 +22,24 @@ async function handleCardAction(eventData) {
         // Options must match exact Single Select options in table: "Approve", "Reject"
         const status = actionType === 'approve' ? 'Approve' : 'Reject';
 
-        console.log('⏳ Updating records...');
-        const updateStart = Date.now();
+        console.log('⏳ Updating records (Background Process)...');
 
-        // REAL UPDATE (using batch update for speed)
-        const result = await updateRecordsStatus(recordIdArray, status);
-        console.log(`✅ Records updated in ${Date.now() - updateStart}ms`);
+        // FIRE AND FORGET: Do not await this!
+        // This prevents Vercel timeout (3s limit from Lark)
+        updateRecordsStatus(recordIdArray, status)
+            .then(res => console.log(`✅ Background update success: ${res.updatedCount} records`))
+            .catch(err => console.error('❌ Background update failed:', err));
 
-        // Create result card
-        const resultCard = createResultCard(actionType, count, result.success);
+        // Create result card immediately (optimistic update)
+        const resultCard = createResultCard(actionType, count, true);
 
-        console.log(`🏁 Total execution time: ${Date.now() - startTime}ms`);
+        console.log(`🏁 Handler finished in ${Date.now() - startTime}ms (Update continues in background)`);
 
-        // Return updated card
+        // Return updated card IMMEDIATELY
         return {
             toast: {
-                type: result.success ? 'success' : 'error',
-                content: result.success
-                    ? `${count} laporan berhasil ${status.toLowerCase()}!`
-                    : 'Gagal memproses laporan',
+                type: 'success',
+                content: `${count} laporan sedang diproses untuk di-${status.toLowerCase()}...`,
             },
             card: resultCard,
         };

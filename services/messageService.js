@@ -13,7 +13,9 @@ function createReportCard(managerData) {
     // Create a summary of records
     const recordSummary = records.slice(0, 5).map((record, index) => {
         const fields = record.fields;
-        return `${index + 1}. ${fields.Title || fields.Subject || 'Report'} - ${fields.Status || 'Pending'}`;
+        const employeeName = fields['Employee Name'] || 'Unknown';
+        const status = fields['status'] || 'Pending';
+        return `${index + 1}. ${employeeName} - ${status}`;
     }).join('\n');
 
     const moreRecords = recordCount > 5 ? `\n... dan ${recordCount - 5} laporan lainnya` : '';
