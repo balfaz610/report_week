@@ -20,7 +20,7 @@ async function handleCardAction(eventData) {
 
         // Update all records with the new status
         // Options must match exact Single Select options in table: "Approve", "Reject"
-        const status = actionType === 'approve' ? 'Approve' : 'Reject';
+        const status = (actionType === 'approve' || actionType === 'Approve') ? 'Approve' : 'Reject';
 
         console.log('⏳ Updating records (Background Process)...');
 

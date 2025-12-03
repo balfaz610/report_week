@@ -72,7 +72,7 @@ function createReportCard(managerData) {
                         },
                         type: 'primary',
                         value: JSON.stringify({
-                            action: 'approve',
+                            action: 'Approve',
                             recordIds: recordIds,
                             count: recordCount,
                         }),
@@ -85,7 +85,7 @@ function createReportCard(managerData) {
                         },
                         type: 'danger',
                         value: JSON.stringify({
-                            action: 'reject',
+                            action: 'Reject',
                             recordIds: recordIds,
                             count: recordCount,
                         }),
