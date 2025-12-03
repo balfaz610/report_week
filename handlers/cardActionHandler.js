@@ -5,6 +5,9 @@ const { createResultCard } = require('../services/messageService');
  * Handle card button actions (approve/reject)
  */
 async function handleCardAction(eventData) {
+    const startTime = Date.now();
+    console.log('🚀 Start processing card action');
+
     try {
         const { action } = eventData;
         const actionValue = JSON.parse(action.value);
@@ -17,29 +20,36 @@ async function handleCardAction(eventData) {
 
         // Update all records with the new status
         const status = actionType === 'approve' ? 'Approved' : 'Rejected';
+
+        console.log('⏳ Updating records...');
+        const updateStart = Date.now();
         const result = await updateRecordsStatus(recordIdArray, status);
+        console.log(`✅ Records updated in ${Date.now() - updateStart}ms`);
 
         // Create result card
-        const resultCard = createResultCard(actionType, count, result.success);
+        // const resultCard = createResultCard(actionType, count, result.success);
 
-        // Return the updated card to replace the original
+        console.log(`🏁 Total execution time: ${Date.now() - startTime}ms`);
+
+        // DEBUG MODE: Return TOAST ONLY first to check if timeout issue is resolved
         return {
             toast: {
                 type: result.success ? 'success' : 'error',
                 content: result.success
-                    ? `${count} laporan berhasil ${status.toLowerCase()}!`
+                    ? `Berhasil! ${count} laporan telah di-${status.toLowerCase()}. (Card tidak berubah saat debug)`
                     : 'Gagal memproses laporan',
             },
-            card: resultCard,
+            // card: resultCard, // Disable card update temporarily
         };
 
     } catch (error) {
-        console.error('Error handling card action:', error);
+        console.error('❌ Error handling card action:', error);
+        console.log(`🏁 Failed execution time: ${Date.now() - startTime}ms`);
 
         return {
             toast: {
                 type: 'error',
-                content: 'Terjadi kesalahan saat memproses aksi',
+                content: 'Terjadi kesalahan sistem',
             },
         };
     }
