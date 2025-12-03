@@ -21,10 +21,13 @@ async function handleCardAction(eventData) {
         // Update all records with the new status
         const status = actionType === 'approve' ? 'Approved' : 'Rejected';
 
-        console.log('⏳ Updating records...');
-        const updateStart = Date.now();
-        const result = await updateRecordsStatus(recordIdArray, status);
-        console.log(`✅ Records updated in ${Date.now() - updateStart}ms`);
+        console.log('⏳ Updating records... (SKIPPED FOR DEBUGGING)');
+        // const updateStart = Date.now();
+        // const result = await updateRecordsStatus(recordIdArray, status);
+        // console.log(`✅ Records updated in ${Date.now() - updateStart}ms`);
+
+        // DUMMY RESULT
+        const result = { success: true };
 
         // Create result card
         // const resultCard = createResultCard(actionType, count, result.success);
@@ -36,7 +39,7 @@ async function handleCardAction(eventData) {
             toast: {
                 type: result.success ? 'success' : 'error',
                 content: result.success
-                    ? `Berhasil! ${count} laporan telah di-${status.toLowerCase()}. (Card tidak berubah saat debug)`
+                    ? `[DEBUG] Berhasil! ${count} laporan telah di-${status.toLowerCase()}. (Data belum diupdate)`
                     : 'Gagal memproses laporan',
             },
             // card: resultCard, // Disable card update temporarily
