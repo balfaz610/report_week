@@ -71,16 +71,24 @@ app.post('/webhook/event', async (req, res) => {
             });
         }
 
-        // Verify token for actual events
-        if (body.token && body.token !== config.verificationToken) {
+        // Verify token for actual events (SKIP for card actions - they use dynamic tokens)
+        const isCardAction = body.action && body.action.tag === 'button';
+
+        if (!isCardAction && body.token && body.token !== config.verificationToken) {
             console.warn('❌ Invalid verification token');
             console.warn('Expected:', config.verificationToken);
             console.warn('Received:', body.token);
             return res.status(401).json({ error: 'Invalid token' });
         }
 
+        // Handle LEGACY card action format (without header/event structure)
+        if (isCardAction) {
+            console.log('🔘 Card action event received (legacy format)');
+            const result = await handleCardAction(body);
+            return res.json(result);
+        }
 
-        // Handle different event types
+        // Handle different event types (Schema 2.0)
         const { header, event } = body;
 
         // Safety check
