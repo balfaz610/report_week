@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const { config } = require('./config/lark');
-const { handleMessage } = require('./handlers/messageHandler');
+const messageHandler = require('./handlers/messageHandler');
 const { handleCardAction } = require('./handlers/cardActionHandler');
 
 const app = express();
@@ -99,10 +99,9 @@ app.post('/webhook/event', async (req, res) => {
                 return res.json({ ok: true });
             }
 
-            // Process message asynchronously
-            handleMessage(event).catch(err => {
-                console.error('Error in handleMessage:', err);
-            });
+            // IMPORTANT: In serverless environment (Vercel), we MUST await the handler
+            // otherwise the execution might be frozen/terminated before completion.
+            await messageHandler.handleMessage(event);
 
             return res.json({ ok: true });
         }
