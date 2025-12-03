@@ -16,7 +16,14 @@ async function handleCardAction(eventData) {
         }
 
         console.log('🔍 Parsing action value...');
-        const actionValue = JSON.parse(action.value);
+        let actionValue = JSON.parse(action.value);
+
+        // Handle double-encoded JSON (if value is still a string after first parse)
+        if (typeof actionValue === 'string') {
+            console.log('⚠️ Double-encoded JSON detected, parsing again...');
+            actionValue = JSON.parse(actionValue);
+        }
+
         console.log('✅ Action Value:', actionValue);
 
         const { action: actionType, recordIds, count } = actionValue;
