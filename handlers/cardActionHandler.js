@@ -44,17 +44,19 @@ async function handleCardAction(eventData) {
         }, 100); // Delay 100ms to let the response fly out
 
         // Create result card
-        console.log('🎨 Creating result card...');
-        const resultCard = createResultCard(actionType, count, true);
+        // console.log('🎨 Creating result card...');
+        // const resultCard = createResultCard(actionType, count, true);
 
+        // MINIMAL RESPONSE - Testing if card update is causing the issue
         const responsePayload = {
             toast: {
                 type: 'success',
-                content: `${count} laporan sedang diproses...`,
+                content: `✅ ${count} laporan sedang diproses untuk ${status}...`,
             },
-            card: resultCard,
+            // card: resultCard, // Temporarily disabled
         };
 
+        console.log('📤 Response Payload:', JSON.stringify(responsePayload));
         console.log(`🏁 [FINISH] Returning response in ${Date.now() - startTime}ms`);
         return responsePayload;
 
