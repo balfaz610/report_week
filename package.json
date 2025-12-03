@@ -1,0 +1,18 @@
+{
+  "name": "lark-weekly-report-bot",
+  "version": "1.0.0",
+  "description": "Lark Bot for Weekly Report Analytics",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js",
+    "start": "node index.js"
+  },
+  "keywords": ["lark", "bot", "weekly-report"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@larksuiteoapi/node-sdk": "^1.29.0",
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1"
+  }
+}
