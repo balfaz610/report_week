@@ -26,6 +26,7 @@ app.post('/webhook/event', async (req, res) => {
         let body = req.body;
 
         console.log('📨 Received webhook:', body.type || body.header?.event_type || (body.encrypt ? 'encrypted' : 'unknown'));
+        console.log('📦 Full Body:', JSON.stringify(body, null, 2));
 
         // Handle encrypted payload
         if (body.encrypt) {
