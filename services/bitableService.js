@@ -93,23 +93,34 @@ async function getRecordsByManager(managerId) {
  */
 async function updateRecordsStatus(recordIds, status) {
     try {
-        const updatePromises = recordIds.map(recordId =>
-            client.bitable.appTableRecord.update({
+        // Prepare records for batch update
+        const records = recordIds.map(recordId => ({
+            record_id: recordId,
+            fields: {
+                'Status': status,
+                'Approved At': Date.now(),
+            },
+        }));
+
+        // Lark batch update limit is 500, but safer to do chunks of 50
+        const chunkSize = 50;
+        const chunks = [];
+        for (let i = 0; i < records.length; i += chunkSize) {
+            chunks.push(records.slice(i, i + chunkSize));
+        }
+
+        for (const chunk of chunks) {
+            await client.bitable.appTableRecord.batchUpdate({
                 path: {
                     app_token: config.baseToken,
                     table_id: config.tableId,
-                    record_id: recordId,
                 },
                 data: {
-                    fields: {
-                        'Status': status, // Assuming there's a Status field
-                        'Approved At': Date.now(),
-                    },
+                    records: chunk,
                 },
-            })
-        );
+            });
+        }
 
-        await Promise.all(updatePromises);
         return { success: true, updatedCount: recordIds.length };
     } catch (error) {
         console.error('Error updating records:', error);
