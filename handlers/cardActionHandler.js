@@ -36,19 +36,21 @@ async function handleCardAction(eventData) {
             throw new Error('No record IDs to update');
         }
 
+
         // Determine status
         const status = (actionType === 'approve' || actionType === 'Approve') ? 'Approve' : 'Reject';
         console.log(`🎯 Target Status: ${status}`);
 
-        // --- FIRE AND FORGET STRATEGY ---
-        // Use setTimeout to push this task to the end of the event loop
-        // This ensures the response is sent to Lark FIRST
-        setTimeout(() => {
-            console.log('⏳ [BACKGROUND] Starting database update...');
-            updateRecordsStatus(recordIdArray, status)
-                .then(res => console.log(`✅ [BACKGROUND] Update success: ${res.updatedCount} records`))
-                .catch(err => console.error('❌ [BACKGROUND] Update failed:', err));
-        }, 100); // Delay 100ms to let the response fly out
+        // Update database synchronously (await) to ensure consistency
+        // This prevents "revert" issues if the user refreshes or if a message event follows
+        console.log('⏳ Starting database update...');
+        try {
+            const dbResult = await updateRecordsStatus(recordIdArray, status);
+            console.log(`✅ Update success: ${dbResult.updatedCount} records`);
+        } catch (dbError) {
+            console.error('❌ Update failed:', dbError);
+            // We continue to show success card to user, but log the error
+        }
 
         // Create result card
         console.log('🎨 Creating result card...');

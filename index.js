@@ -93,10 +93,10 @@ app.post('/webhook/event', async (req, res) => {
         }
 
         // Handle LEGACY card action format (without header/event structure)
+        // DISABLED: We rely on the V2 event (card.action.trigger) to handle this.
+        // Processing both causes race conditions and double DB updates.
         if (isCardAction) {
-            console.log('🔘 Card action event received (legacy format) - IGNORING to prevent double processing');
-            // We rely on the V2 event (card.action.trigger) to handle this.
-            // Returning empty object to acknowledge receipt.
+            console.log('🔘 Card action event received (legacy format) - IGNORING');
             return res.json({});
         }
 
