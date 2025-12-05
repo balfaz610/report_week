@@ -54,20 +54,13 @@ async function handleCardAction(eventData) {
         console.log('🎨 Creating result card...');
         const resultCard = createResultCard(actionType, count, true);
 
-        // Explicitly update the card to ensure buttons are removed
-        // We await this to ensure the UI updates before we return
-        if (eventData.open_message_id) {
-            console.log(`🔄 Updating message ${eventData.open_message_id}...`);
-            await updateMessageCard(eventData.open_message_id, resultCard);
-        }
-
-        // MINIMAL RESPONSE
+        // Return the new card in the response to update the UI immediately
         const responsePayload = {
             toast: {
                 type: 'success',
                 content: `✅ ${count} laporan sedang diproses untuk ${status}...`,
             },
-            // card: resultCard, // Removed to rely on explicit update
+            card: resultCard,
         };
 
         console.log('📤 Response Payload:', JSON.stringify(responsePayload));
