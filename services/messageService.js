@@ -150,7 +150,7 @@ async function sendTextMessage(userId, text) {
  * Update card after action (show result)
  */
 function createResultCard(action, count, success = true) {
-    const isApprove = action === 'approve';
+    const isApprove = action && action.toLowerCase() === 'approve';
     const emoji = isApprove ? '✅' : '❌';
     const actionText = isApprove ? 'Disetujui' : 'Ditolak';
     const color = isApprove ? 'green' : 'red';
@@ -194,4 +194,26 @@ module.exports = {
     sendReportCard,
     sendTextMessage,
     createResultCard,
+    updateMessageCard,
 };
+
+/**
+ * Update a message card explicitly
+ */
+async function updateMessageCard(messageId, cardContent) {
+    try {
+        const response = await client.im.message.patch({
+            path: {
+                message_id: messageId,
+            },
+            data: {
+                content: JSON.stringify(cardContent),
+            },
+        });
+        return response;
+    } catch (error) {
+        console.error('Error updating message card:', error);
+        // Don't throw, just log, so we don't break the flow
+        return null;
+    }
+}
