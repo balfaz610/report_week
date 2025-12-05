@@ -66,12 +66,13 @@ async function handleCardAction(eventData) {
             console.warn('⚠️ Could not find open_message_id to update card');
         }
 
-        // Return ONLY toast, as we updated the card explicitly
+        // Return toast AND the card to ensure it stays updated
         const responsePayload = {
             toast: {
                 type: 'success',
                 content: `✅ ${count} laporan sedang diproses untuk ${status}...`,
             },
+            card: resultCard,
         };
 
         console.log('📤 Response Payload:', JSON.stringify(responsePayload));
