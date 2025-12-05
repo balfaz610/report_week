@@ -54,6 +54,8 @@ async function handleCardAction(eventData) {
         console.log('🎨 Creating result card...');
         const resultCard = createResultCard(actionType, count, true);
 
+
+
         // Explicitly update the card to ensure buttons are removed
         // Check for open_message_id in various places
         const messageId = eventData.open_message_id || eventData.context?.open_message_id;
@@ -66,18 +68,10 @@ async function handleCardAction(eventData) {
             console.warn('⚠️ Could not find open_message_id to update card');
         }
 
-        // Return toast AND the card to ensure it stays updated
-        const responsePayload = {
-            toast: {
-                type: 'success',
-                content: `✅ ${count} laporan sedang diproses untuk ${status}...`,
-            },
-            card: resultCard,
-        };
-
-        console.log('📤 Response Payload:', JSON.stringify(responsePayload));
-        console.log(`🏁 [FINISH] Returning response in ${Date.now() - startTime}ms`);
-        return responsePayload;
+        // Return empty object to acknowledge the event without triggering a card revert
+        // The visual feedback is provided by the updated card itself
+        console.log('📤 Returning empty response to prevent revert');
+        return {};
 
     } catch (error) {
         console.error('❌ [ERROR] Handle Card Action:', error);
