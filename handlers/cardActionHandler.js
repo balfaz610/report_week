@@ -68,14 +68,13 @@ async function handleCardAction(eventData) {
             console.warn('⚠️ Could not find open_message_id to update card');
         }
 
-        // Return the card in the response as well to ensure it stays updated
-        // This acts as a "double tap" to prevent reverts
+        // Return ONLY toast. We do NOT return 'card' here because we already updated it explicitly.
+        // Returning 'card' here might cause a race condition or conflict.
         const responsePayload = {
             toast: {
                 type: 'success',
                 content: `✅ ${count} laporan sedang diproses untuk ${status}...`,
             },
-            card: resultCard,
         };
 
         console.log('📤 Response Payload:', JSON.stringify(responsePayload));
