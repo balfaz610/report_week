@@ -11,5 +11,11 @@
             "src": "/(.*)",
             "dest": "index.js"
         }
+    ],
+    "crons": [
+        {
+            "path": "/api/cron/send-reports",
+            "schedule": "0 3 * * *"
+        }
     ]
 }

@@ -51,8 +51,8 @@ async function handleCardAction(eventData) {
         }, 100); // Delay 100ms to let the response fly out
 
         // Create result card
-        // console.log('🎨 Creating result card...');
-        // const resultCard = createResultCard(actionType, count, true);
+        console.log('🎨 Creating result card...');
+        const resultCard = createResultCard(actionType, count, true);
 
         // MINIMAL RESPONSE - Testing if card update is causing the issue
         const responsePayload = {
@@ -60,7 +60,7 @@ async function handleCardAction(eventData) {
                 type: 'success',
                 content: `✅ ${count} laporan sedang diproses untuk ${status}...`,
             },
-            // card: resultCard, // Temporarily disabled
+            card: resultCard,
         };
 
         console.log('📤 Response Payload:', JSON.stringify(responsePayload));

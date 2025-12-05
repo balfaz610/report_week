@@ -3,6 +3,7 @@ const express = require('express');
 const { config } = require('./config/lark');
 const messageHandler = require('./handlers/messageHandler');
 const { handleCardAction } = require('./handlers/cardActionHandler');
+const { handleCronJob } = require('./handlers/cronHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,16 @@ app.get('/', (req, res) => {
         message: 'Lark Weekly Report Bot is running',
         timestamp: new Date().toISOString(),
     });
+});
+
+// Cron job endpoint
+app.get('/api/cron/send-reports', async (req, res) => {
+    try {
+        const result = await handleCronJob();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Webhook endpoint for Lark events
