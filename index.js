@@ -8,6 +8,21 @@ const { handleCronJob } = require('./handlers/cronHandler');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// In-memory cache to prevent duplicate card action processing
+// Key: event_id or action_value hash, Value: timestamp
+const processedEvents = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Cleanup old cached events periodically
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, timestamp] of processedEvents.entries()) {
+        if (now - timestamp > CACHE_TTL) {
+            processedEvents.delete(key);
+        }
+    }
+}, CACHE_TTL);
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -83,20 +98,20 @@ app.post('/webhook/event', async (req, res) => {
         }
 
         // Verify token for actual events (SKIP for card actions - they use dynamic tokens)
-        const isCardAction = body.action && body.action.tag === 'button';
+        const isLegacyCardAction = body.action && body.action.tag === 'button';
 
-        if (!isCardAction && body.token && body.token !== config.verificationToken) {
+        if (!isLegacyCardAction && body.token && body.token !== config.verificationToken) {
             console.warn('❌ Invalid verification token');
             console.warn('Expected:', config.verificationToken);
             console.warn('Received:', body.token);
             return res.status(401).json({ error: 'Invalid token' });
         }
 
-        // Handle LEGACY card action format (without header/event structure)
-        if (isCardAction) {
-            console.log('🔘 Card action event received (legacy format)');
-            const result = await handleCardAction(body);
-            return res.json(result);
+        // Handle LEGACY card action format (DEPRECATED - prefer Schema 2.0)
+        // We'll ignore this and only handle card.action.trigger to prevent double processing
+        if (isLegacyCardAction) {
+            console.log('⏭️ Skipping legacy card action format (will be handled by Schema 2.0)');
+            return res.json({ ok: true });
         }
 
         // Handle different event types (Schema 2.0)
@@ -119,6 +134,13 @@ app.post('/webhook/event', async (req, res) => {
                 return res.json({ ok: true });
             }
 
+            // CRITICAL: Ignore interactive card messages (msg_type === 'interactive')
+            // This prevents the bot from re-sending cards when it updates a card
+            if (event.message && event.message.message_type === 'interactive') {
+                console.log('⏭️ Skipping interactive card message (likely a card update)');
+                return res.json({ ok: true });
+            }
+
             // IMPORTANT: In serverless environment (Vercel), we MUST await the handler
             // otherwise the execution might be frozen/terminated before completion.
             await messageHandler.handleMessage(event);
@@ -126,9 +148,27 @@ app.post('/webhook/event', async (req, res) => {
             return res.json({ ok: true });
         }
 
-        // Handle card action events
+        // Handle card action events (Schema 2.0 ONLY)
         if (header.event_type === 'card.action.trigger') {
-            console.log('🔘 Card action event received');
+            console.log('🔘 Card action event received (Schema 2.0)');
+
+            // Deduplication: Check if this event was already processed
+            const eventId = header.event_id;
+            const actionValue = event.action?.value;
+
+            // Create unique key from event_id or action value
+            const dedupeKey = eventId || (actionValue ? `action_${actionValue}` : null);
+
+            if (dedupeKey && processedEvents.has(dedupeKey)) {
+                console.log(`⏭️ Skipping duplicate event: ${dedupeKey}`);
+                return res.json({ ok: true });
+            }
+
+            // Mark this event as processed
+            if (dedupeKey) {
+                processedEvents.set(dedupeKey, Date.now());
+            }
+
             const result = await handleCardAction(event);
             return res.json(result);
         }
