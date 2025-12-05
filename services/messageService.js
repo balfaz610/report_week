@@ -189,14 +189,6 @@ function createResultCard(action, count, success = true) {
     };
 }
 
-module.exports = {
-    createReportCard,
-    sendReportCard,
-    sendTextMessage,
-    createResultCard,
-    updateMessageCard,
-};
-
 /**
  * Update a message card explicitly
  */
@@ -217,3 +209,11 @@ async function updateMessageCard(messageId, cardContent) {
         return null;
     }
 }
+
+module.exports = {
+    createReportCard,
+    sendReportCard,
+    sendTextMessage,
+    createResultCard,
+    updateMessageCard,
+};
