@@ -68,12 +68,13 @@ async function handleCardAction(eventData) {
             console.warn('⚠️ Could not find open_message_id to update card');
         }
 
-        // Return ONLY toast. We do NOT return 'card' here because we already updated it explicitly.
-        // Returning 'card' here might cause a race condition or conflict.
+        // Return BOTH card content AND toast for maximum compatibility
+        // Some Lark configurations need the card in response to update properly
         const responsePayload = {
+            card: resultCard,
             toast: {
                 type: 'success',
-                content: `✅ ${count} laporan sedang diproses untuk ${status}...`,
+                content: `✅ ${count} laporan berhasil ${status}`,
             },
         };
 

@@ -107,11 +107,28 @@ app.post('/webhook/event', async (req, res) => {
             return res.status(401).json({ error: 'Invalid token' });
         }
 
-        // Handle LEGACY card action format (DEPRECATED - prefer Schema 2.0)
-        // We'll ignore this and only handle card.action.trigger to prevent double processing
+        // Handle LEGACY card action format (without header/event structure)
+        // Support both formats for compatibility, but use deduplication to prevent double processing
         if (isLegacyCardAction) {
-            console.log('⏭️ Skipping legacy card action format (will be handled by Schema 2.0)');
-            return res.json({ ok: true });
+            console.log('🔘 Card action event received (LEGACY format)');
+
+            // Deduplication: Create unique key from action value
+            const actionValue = body.action?.value;
+            const openMessageId = body.open_message_id;
+            const dedupeKey = actionValue ? `legacy_${openMessageId}_${actionValue}` : null;
+
+            if (dedupeKey && processedEvents.has(dedupeKey)) {
+                console.log(`⏭️ Skipping duplicate legacy event: ${dedupeKey}`);
+                return res.json({ ok: true });
+            }
+
+            // Mark this event as processed
+            if (dedupeKey) {
+                processedEvents.set(dedupeKey, Date.now());
+            }
+
+            const result = await handleCardAction(body);
+            return res.json(result);
         }
 
         // Handle different event types (Schema 2.0)
@@ -148,19 +165,20 @@ app.post('/webhook/event', async (req, res) => {
             return res.json({ ok: true });
         }
 
-        // Handle card action events (Schema 2.0 ONLY)
+        // Handle card action events (Schema 2.0)
         if (header.event_type === 'card.action.trigger') {
             console.log('🔘 Card action event received (Schema 2.0)');
 
             // Deduplication: Check if this event was already processed
             const eventId = header.event_id;
             const actionValue = event.action?.value;
+            const openMessageId = event.context?.open_message_id;
 
-            // Create unique key from event_id or action value
-            const dedupeKey = eventId || (actionValue ? `action_${actionValue}` : null);
+            // Create unique key from event_id or action value + message id
+            const dedupeKey = eventId || (actionValue && openMessageId ? `schema2_${openMessageId}_${actionValue}` : null);
 
             if (dedupeKey && processedEvents.has(dedupeKey)) {
-                console.log(`⏭️ Skipping duplicate event: ${dedupeKey}`);
+                console.log(`⏭️ Skipping duplicate Schema 2.0 event: ${dedupeKey}`);
                 return res.json({ ok: true });
             }
 
