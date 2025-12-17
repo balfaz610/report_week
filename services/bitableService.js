@@ -39,7 +39,7 @@ async function getWeeklyReportsByManager() {
             }
 
             // Get Senior Manager field (assuming it's a Person field)
-            const seniorManager = fields['Senior Manager'];
+            const seniorManager = fields['SM test'];
 
             if (!seniorManager) {
                 return; // Skip if no SM assigned
@@ -97,7 +97,7 @@ async function updateRecordsStatus(recordIds, status) {
         const records = recordIds.map(recordId => ({
             record_id: recordId,
             fields: {
-                'status': status, // Changed to lowercase 'status' to match table
+                'Approver SM': status, // Updated to match new column name
                 // 'Approved At': Date.now(), // Commented out as I don't see this column in your screenshot
             },
         }));

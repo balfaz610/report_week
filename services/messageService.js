@@ -13,8 +13,8 @@ function createReportCard(managerData) {
     // Create a summary of records
     const recordSummary = records.slice(0, 5).map((record, index) => {
         const fields = record.fields;
-        const employeeName = fields['Employee Name'] || 'Unknown';
-        const status = fields['status'] || 'Pending';
+        const employeeName = fields['Nama'] || 'Unknown';
+        const status = fields['Approver SM'] || 'Pending';
         return `${index + 1}. ${employeeName} - ${status}`;
     }).join('\n');
 
