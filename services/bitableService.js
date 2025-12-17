@@ -38,7 +38,7 @@ async function getWeeklyReportsByManager() {
                 return; // Skip old records
             }
 
-            // Get Senior Manager field (assuming it's a Person field)
+            // Get Senior Manager field (assuming it's  Person field)
             const seniorManager = fields['SM test'];
 
             if (!seniorManager) {
