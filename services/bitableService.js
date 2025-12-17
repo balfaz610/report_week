@@ -21,10 +21,17 @@ async function getWeeklyReportsByManager() {
         });
 
         if (!response.data || !response.data.items) {
+            console.log('No records found in table');
             return {};
         }
 
         const records = response.data.items;
+        console.log(`📊 Found ${records.length} total records in table`);
+
+        // Debug: Log first record to see field structure
+        if (records.length > 0) {
+            console.log('📋 Sample record structure:', JSON.stringify(records[0], null, 2));
+        }
 
         // Filter records from last 2 weeks and group by Senior Manager
         const groupedByManager = {};
@@ -84,8 +91,12 @@ async function getWeeklyReportsByManager() {
  * Get records for a specific Senior Manager
  */
 async function getRecordsByManager(managerId) {
+    console.log(`🔍 Looking for records with manager ID: ${managerId}`);
     const allGrouped = await getWeeklyReportsByManager();
-    return allGrouped[managerId] || null;
+    console.log('📊 Available manager IDs:', Object.keys(allGrouped));
+    const result = allGrouped[managerId] || null;
+    console.log(`📋 Found ${result ? result.records.length : 0} records for this manager`);
+    return result;
 }
 
 /**
