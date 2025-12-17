@@ -10,6 +10,9 @@ async function getWeeklyReportsByManager() {
         const twoWeeksAgoTimestamp = twoWeeksAgo.getTime();
 
         // Fetch all records from the table
+        console.log('🔑 Using app_token:', config.baseToken);
+        console.log('🔑 Using table_id:', config.tableId);
+
         const response = await client.bitable.appTableRecord.list({
             path: {
                 app_token: config.baseToken,
@@ -19,6 +22,10 @@ async function getWeeklyReportsByManager() {
                 page_size: 500, // Adjust based on your needs
             },
         });
+
+        console.log('📡 API Response code:', response.code);
+        console.log('📡 API Response msg:', response.msg);
+        console.log('📡 API Response data:', JSON.stringify(response.data, null, 2));
 
         if (!response.data || !response.data.items) {
             console.log('No records found in table');
