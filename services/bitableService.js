@@ -9,9 +9,14 @@ async function getWeeklyReportsByManager() {
         twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
         const twoWeeksAgoTimestamp = twoWeeksAgo.getTime();
 
-        // Fetch all records from the table
-        console.log('🔑 Using app_token:', config.baseToken);
-        console.log('🔑 Using table_id:', config.tableId);
+        // Log configuration for debugging
+        console.log('='.repeat(50));
+        console.log('🔧 [DEBUG] Bitable Configuration:');
+        console.log('  - LARK_BASE_TOKEN:', config.baseToken ? `${config.baseToken.substring(0, 10)}...` : 'NOT SET');
+        console.log('  - LARK_TABLE_ID:', config.tableId || 'NOT SET');
+        console.log('  - Full app_token:', config.baseToken);
+        console.log('  - Full table_id:', config.tableId);
+        console.log('='.repeat(50));
 
         const response = await client.bitable.appTableRecord.list({
             path: {
@@ -25,10 +30,30 @@ async function getWeeklyReportsByManager() {
 
         console.log('📡 API Response code:', response.code);
         console.log('📡 API Response msg:', response.msg);
+
+        // Check for API errors
+        if (response.code !== 0) {
+            console.error('❌ [ERROR] Bitable API returned error:');
+            console.error('  - Error Code:', response.code);
+            console.error('  - Error Message:', response.msg);
+            console.error('  - Full Response:', JSON.stringify(response, null, 2));
+
+            // Common error codes
+            if (response.code === 91402) {
+                console.error('💡 [HINT] Error 91402: Table not found. Check if LARK_TABLE_ID is correct.');
+            } else if (response.code === 91403) {
+                console.error('💡 [HINT] Error 91403: Base not found. Check if LARK_BASE_TOKEN is correct.');
+            } else if (response.code === 99991663 || response.code === 99991664) {
+                console.error('💡 [HINT] Permission error. Make sure the app has bitable:app permission and is added to the base.');
+            }
+
+            throw new Error(`Bitable API Error: ${response.code} - ${response.msg}`);
+        }
+
         console.log('📡 API Response data:', JSON.stringify(response.data, null, 2));
 
         if (!response.data || !response.data.items) {
-            console.log('No records found in table');
+            console.log('📭 No records found in table (empty result)');
             return {};
         }
 
@@ -89,7 +114,21 @@ async function getWeeklyReportsByManager() {
 
         return groupedByManager;
     } catch (error) {
-        console.error('Error fetching bitable records:', error);
+        console.error('❌ [ERROR] Exception fetching bitable records:');
+        console.error('  - Error Name:', error.name);
+        console.error('  - Error Message:', error.message);
+        console.error('  - Error Stack:', error.stack);
+
+        // Log additional context
+        if (error.response) {
+            console.error('  - API Response:', JSON.stringify(error.response, null, 2));
+        }
+
+        // Log config used (for debugging)
+        console.error('  - Config used:');
+        console.error('    - app_token:', config.baseToken);
+        console.error('    - table_id:', config.tableId);
+
         throw error;
     }
 }

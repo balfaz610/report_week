@@ -38,11 +38,18 @@ app.get('/', (req, res) => {
 
 // Cron job endpoint
 app.get('/api/cron/send-reports', async (req, res) => {
+    console.log('🚀 [CRON] Cron endpoint triggered at:', new Date().toISOString());
     try {
         const result = await handleCronJob();
+        console.log('✅ [CRON] Cron job completed:', JSON.stringify(result));
         res.json(result);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('❌ [CRON] Cron job failed:', error.message);
+        console.error('❌ [CRON] Full error:', error.stack);
+        res.status(500).json({
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
     }
 });
 
